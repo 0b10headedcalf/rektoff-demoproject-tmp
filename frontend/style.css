@@ -1,0 +1,163 @@
+:root {
+  color-scheme: dark;
+  --bg: #16181d;
+  --panel: #1e2128;
+  --border: #2e323b;
+  --text: #dfe2e8;
+  --muted: #8b919e;
+  --accent: #7c5cff;
+  --pass: #4cc38a;
+  --fail: #f2686a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.55 system-ui, sans-serif;
+}
+
+header {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  font-weight: 700;
+}
+
+.file {
+  color: var(--muted);
+  font: 13px ui-monospace, monospace;
+}
+
+main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(280px, 380px) 1fr;
+  min-height: 0;
+}
+
+.side {
+  padding: 16px;
+  overflow-y: auto;
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+}
+
+.description h1 {
+  margin: 0 0 8px;
+  font-size: 20px;
+}
+
+.description p {
+  margin: 0 0 12px;
+  color: var(--text);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+button {
+  padding: 8px 14px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button.secondary {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--text);
+  font-weight: 400;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.status {
+  min-height: 1.55em;
+  color: var(--muted);
+}
+
+.status.pass,
+.checks .pass {
+  color: var(--pass);
+}
+
+.status.fail,
+.checks .fail {
+  color: var(--fail);
+}
+
+.checks {
+  margin: 8px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.checks li {
+  padding: 4px 0;
+}
+
+.compile-error {
+  max-height: 40vh;
+  margin: 8px 0;
+  padding: 10px;
+  overflow: auto;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font: 12px/1.45 ui-monospace, monospace;
+  white-space: pre-wrap;
+}
+
+.timings {
+  color: var(--muted);
+  font: 12px ui-monospace, monospace;
+}
+
+.editor {
+  min-width: 0;
+  min-height: 0;
+}
+
+.editor .cm-editor {
+  height: 100%;
+  font-size: 14px;
+}
+
+@media (max-width: 760px) {
+  main {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(50vh, 1fr);
+  }
+
+  .side {
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+}

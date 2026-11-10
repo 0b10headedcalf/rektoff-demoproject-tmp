@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rektoff Practice</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <header>
+      <span class="brand">Rektoff Practice</span>
+      <span class="file">programs/vault/src/lib.rs</span>
+    </header>
+    <main>
+      <section class="side">
+        <div id="description" class="description"></div>
+        <div class="actions">
+          <button id="submit" disabled>Submit fix</button>
+          <button id="reset" class="secondary" disabled>Reset code</button>
+        </div>
+        <div id="status" class="status" aria-live="polite"></div>
+        <ul id="checks" class="checks"></ul>
+        <pre id="compile-error" class="compile-error" hidden></pre>
+        <div id="timings" class="timings"></div>
+      </section>
+      <section id="editor" class="editor"></section>
+    </main>
+    <script type="module" src="./app.ts"></script>
+  </body>
+</html>
