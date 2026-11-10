@@ -1,8 +1,12 @@
 import { basicSetup, EditorView } from "codemirror";
 import { rust } from "@codemirror/lang-rust";
-import { oneDark } from "@codemirror/theme-one-dark";
+import { rustCompletions } from "./completions";
+import { rektoffTheme } from "./theme";
 
-const LEVEL = "level-01-missing-signer";
+interface LevelSummary {
+  id: string;
+  title: string;
+}
 
 type Stage = "queued" | "building" | "testing" | "done";
 
@@ -37,9 +41,11 @@ const statusEl = el<HTMLDivElement>("status");
 const checksEl = el<HTMLUListElement>("checks");
 const compileErrorEl = el<HTMLPreElement>("compile-error");
 const timingsEl = el<HTMLDivElement>("timings");
+const levelsEl = el<HTMLElement>("levels");
 
 let editor: EditorView | undefined;
 let originalSource = "";
+let currentLevel = "";
 
 /** Renders the level's small Markdown subset: a heading, paragraphs, **bold**. */
 function renderDescription(markdown: string) {
@@ -103,16 +109,16 @@ function showResult(state: JobState) {
 
 async function submit() {
   if (!editor) return;
-  submitButton.disabled = true;
+  setBusy(true);
   clearResults();
   showStatus("Submitting…", "busy");
 
-  const finish = () => (submitButton.disabled = false);
+  const finish = () => setBusy(false);
   try {
     const response = await fetch("/api/submit", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ level: LEVEL, source: editor.state.doc.toString() }),
+      body: JSON.stringify({ level: currentLevel, source: editor.state.doc.toString() }),
     });
     if (!response.ok) {
       showStatus(`Could not submit: ${await response.text()}`, "fail");
@@ -145,23 +151,62 @@ async function submit() {
   }
 }
 
-async function load() {
-  const response = await fetch(`/api/levels/${LEVEL}`).catch(() => undefined);
+/** Levels cannot be switched while a submission is running. */
+function setBusy(busy: boolean) {
+  submitButton.disabled = busy;
+  for (const button of levelsEl.querySelectorAll("button")) button.disabled = busy;
+}
+
+async function loadLevel(id: string) {
+  const response = await fetch(`/api/levels/${id}`).catch(() => undefined);
   if (!response?.ok) {
     showStatus("Could not load the level. Is the backend running?", "fail");
     return;
   }
   const level = (await response.json()) as { description: string; source: string };
+  currentLevel = id;
   originalSource = level.source;
   renderDescription(level.description);
+  clearResults();
+  showStatus("");
 
-  editor = new EditorView({
-    doc: level.source,
-    extensions: [basicSetup, rust(), oneDark],
-    parent: el("editor"),
-  });
+  if (editor) {
+    setSource(level.source);
+  } else {
+    editor = new EditorView({
+      doc: level.source,
+      extensions: [basicSetup, rust(), rustCompletions, rektoffTheme],
+      parent: el("editor"),
+    });
+  }
+  for (const button of levelsEl.querySelectorAll("button")) {
+    if (button.dataset.level === id) button.setAttribute("aria-current", "true");
+    else button.removeAttribute("aria-current");
+  }
+  history.replaceState(null, "", `#${id}`);
   submitButton.disabled = false;
   resetButton.disabled = false;
+}
+
+/** Builds the level picker, then opens the level named in the URL or the first one. */
+async function start() {
+  const response = await fetch("/api/levels").catch(() => undefined);
+  const levels = response?.ok ? ((await response.json()) as LevelSummary[]) : [];
+  const first = levels[0];
+  if (!first) {
+    showStatus("Could not load the levels. Is the backend running?", "fail");
+    return;
+  }
+  for (const [index, level] of levels.entries()) {
+    const button = document.createElement("button");
+    button.textContent = `Level ${index + 1}`;
+    button.title = level.title;
+    button.dataset.level = level.id;
+    button.addEventListener("click", () => loadLevel(level.id));
+    levelsEl.append(button);
+  }
+  const wanted = location.hash.slice(1);
+  await loadLevel(levels.some((level) => level.id === wanted) ? wanted : first.id);
 }
 
 submitButton.addEventListener("click", submit);
@@ -171,4 +216,4 @@ resetButton.addEventListener("click", () => {
   showStatus("");
 });
 
-load();
+start();

@@ -1,0 +1,27 @@
+[package]
+name = "vault"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build"]
+anchor-debug = []
+custom-heap = []
+custom-panic = []
+
+[dependencies]
+anchor-lang = "=1.2.2"
+
+[profile.release]
+overflow-checks = true
+
+# Standalone: levels are not members of the repo's root workspace.
+[workspace]

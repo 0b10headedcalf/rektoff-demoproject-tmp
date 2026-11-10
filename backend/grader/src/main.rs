@@ -1,6 +1,6 @@
 //! Trusted grader. Loads a compiled program and runs a level's checks against it.
 //!
-//! Usage: harness <level> <path/to/program.so>
+//! Usage: grader <level> <path/to/program.so>
 //! Prints one JSON object on stdout. `detail` is for logs only: the API must
 //! strip it before anything reaches the player.
 
@@ -11,8 +11,14 @@ use std::time::Instant;
 
 use serde::Serialize;
 
+mod support;
+
 #[path = "../../levels/level-01-missing-signer/tests-hidden/checks.rs"]
 mod level_01;
+#[path = "../../levels/level-02-missing-owner-check/tests-hidden/checks.rs"]
+mod level_02;
+#[path = "../../levels/level-03-fee-rounding/tests-hidden/checks.rs"]
+mod level_03;
 
 pub struct Check {
     pub name: &'static str,
@@ -37,6 +43,8 @@ struct Report {
 fn checks_for(level: &str) -> Option<&'static [Check]> {
     match level {
         "level-01-missing-signer" => Some(level_01::CHECKS),
+        "level-02-missing-owner-check" => Some(level_02::CHECKS),
+        "level-03-fee-rounding" => Some(level_03::CHECKS),
         _ => None,
     }
 }
@@ -56,7 +64,7 @@ fn run_check(check: &Check, program: &Path) -> CheckResult {
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let [level, program] = args.as_slice() else {
-        eprintln!("usage: harness <level> <program.so>");
+        eprintln!("usage: grader <level> <program.so>");
         return ExitCode::from(2);
     };
     let Some(checks) = checks_for(level) else {

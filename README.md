@@ -5,7 +5,7 @@ attack the compiled result.
 
 - `frontend/`: Bun server and CodeMirror page. Forwards `/api/*` to the backend.
 - `backend/api/`: Rust (axum) API. Queues submissions, compiles them, runs the grader.
-- `backend/harness/`: the grader. Loads a compiled program into LiteSVM and runs a level's checks.
+- `backend/grader/`: loads a compiled program into LiteSVM and runs a level's checks.
 - `backend/levels/`: one folder per level.
 
 ## Run locally

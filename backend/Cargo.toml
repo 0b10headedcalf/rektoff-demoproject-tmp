@@ -1,4 +1,4 @@
 [workspace]
-members = ["api", "harness"]
+members = ["api", "grader"]
 exclude = ["levels"]
 resolver = "3"

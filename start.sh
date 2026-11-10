@@ -22,7 +22,7 @@ if ! command -v cargo-build-sbf >/dev/null; then
 fi
 
 if [ "$MODE" != "--prod" ]; then
-  (cd backend && cargo build --release -p api -p harness)
+  (cd backend && cargo build --release -p api -p grader)
   (cd frontend && bun install --silent)
 fi
 

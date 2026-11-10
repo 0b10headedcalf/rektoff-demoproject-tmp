@@ -1,7 +1,7 @@
 //! HTTP API for the practice platform.
 //!
 //! Accepts a player's source file, compiles it to SBF, grades the result with
-//! the harness, and reports progress over Server-Sent Events.
+//! the grader, and reports progress over Server-Sent Events.
 //!
 //! Jobs run one at a time through a bounded queue. All state is in memory.
 
@@ -79,7 +79,7 @@ struct App {
     levels: HashMap<String, Level>,
     jobs: Mutex<HashMap<String, (Instant, watch::Receiver<JobState>)>>,
     queue: mpsc::Sender<Job>,
-    harness: PathBuf,
+    grader: PathBuf,
 }
 
 #[derive(Serialize)]
@@ -101,6 +101,26 @@ struct SubmitResponse {
 }
 
 type ApiError = (StatusCode, &'static str);
+
+#[derive(Serialize)]
+struct LevelSummary<'a> {
+    id: &'a str,
+    title: &'a str,
+}
+
+/// Every level in play order (ids start with their number), for the level picker.
+async fn list_levels(State(app): State<Arc<App>>) -> Json<serde_json::Value> {
+    let mut levels: Vec<LevelSummary> = app
+        .levels
+        .iter()
+        .map(|(id, level)| {
+            let heading = level.description.lines().find_map(|line| line.strip_prefix("# "));
+            LevelSummary { id, title: heading.unwrap_or(id) }
+        })
+        .collect();
+    levels.sort_by_key(|level| level.id);
+    Json(serde_json::to_value(levels).expect("levels serialize"))
+}
 
 async fn get_level(
     State(app): State<Arc<App>>,
@@ -235,20 +255,20 @@ async fn build(work_dir: &Path, source: &str) -> Result<PathBuf, BuildFailure> {
 }
 
 #[derive(Deserialize)]
-struct HarnessCheck {
+struct GraderCheck {
     name: String,
     passed: bool,
     detail: Option<String>,
 }
 
 #[derive(Deserialize)]
-struct HarnessReport {
+struct GraderReport {
     passed: bool,
-    checks: Vec<HarnessCheck>,
+    checks: Vec<GraderCheck>,
 }
 
-async fn grade(harness: &Path, level: &str, program: &Path) -> Result<HarnessReport, String> {
-    let run = sandboxed_command(&harness.to_string_lossy())
+async fn grade(grader: &Path, level: &str, program: &Path) -> Result<GraderReport, String> {
+    let run = sandboxed_command(&grader.to_string_lossy())
         .arg(level)
         .arg(program)
         .stdout(Stdio::piped())
@@ -257,10 +277,10 @@ async fn grade(harness: &Path, level: &str, program: &Path) -> Result<HarnessRep
     let output = tokio::time::timeout(TEST_TIMEOUT, run)
         .await
         .map_err(|_| "tests timed out".to_string())?
-        .map_err(|e| format!("could not start harness: {e}"))?;
+        .map_err(|e| format!("could not start grader: {e}"))?;
     let stdout = String::from_utf8_lossy(&output.stdout);
     let line = stdout.lines().last().unwrap_or_default();
-    serde_json::from_str(line).map_err(|e| format!("bad harness output: {e}"))
+    serde_json::from_str(line).map_err(|e| format!("bad grader output: {e}"))
 }
 
 async fn run_job(app: &App, job: Job) {
@@ -293,7 +313,7 @@ async fn run_job(app: &App, job: Job) {
     });
 
     let started = Instant::now();
-    let graded = grade(&app.harness, &job.level, &program).await;
+    let graded = grade(&app.grader, &job.level, &program).await;
     let test_ms = started.elapsed().as_millis() as u64;
     match graded {
         Ok(report) => {
@@ -385,17 +405,17 @@ fn env_path(key: &str, default: &str) -> PathBuf {
 async fn main() {
     let levels_dir = env_path("LEVELS_DIR", "levels");
     let work_root = env_path("WORK_DIR", ".work");
-    let harness = env_path("HARNESS_BIN", "target/release/harness");
+    let grader = env_path("GRADER_BIN", "target/release/grader");
     let port = env::var("PORT").unwrap_or_else(|_| "8787".to_string());
 
-    let harness = harness.canonicalize().expect("HARNESS_BIN exists (cargo build --release -p harness)");
+    let grader = grader.canonicalize().expect("GRADER_BIN exists (cargo build --release -p grader)");
     tokio::fs::create_dir_all(&work_root).await.expect("create WORK_DIR");
     let work_root = work_root.canonicalize().expect("WORK_DIR resolves");
     let levels = load_levels(&levels_dir, &work_root).await;
     assert!(!levels.is_empty(), "no levels found in {}", levels_dir.display());
 
     let (queue, mut jobs) = mpsc::channel::<Job>(QUEUE_CAPACITY);
-    let app = Arc::new(App { levels, jobs: Mutex::new(HashMap::new()), queue, harness });
+    let app = Arc::new(App { levels, jobs: Mutex::new(HashMap::new()), queue, grader });
 
     let worker_app = app.clone();
     tokio::spawn(async move {
@@ -405,6 +425,7 @@ async fn main() {
     });
 
     let router = Router::new()
+        .route("/api/levels", get(list_levels))
         .route("/api/levels/{id}", get(get_level))
         .route("/api/submit", post(submit))
         .route("/api/submit/{id}", get(get_job))

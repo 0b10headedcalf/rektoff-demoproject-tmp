@@ -19,7 +19,7 @@ FROM oven/bun:${BUN_VERSION} AS bun
 FROM rust:${RUST_VERSION}-bookworm AS builder
 WORKDIR /src/backend
 COPY backend/ ./
-RUN cargo build --release --locked -p api -p harness
+RUN cargo build --release --locked -p api -p grader
 
 # Keep only what players are allowed to see from each level.
 RUN set -eu; \
@@ -57,7 +57,7 @@ RUN set -eu; \
       (cd "$program" && cargo-build-sbf); \
     done
 
-COPY --from=builder /src/backend/target/release/api /src/backend/target/release/harness /app/bin/
+COPY --from=builder /src/backend/target/release/api /src/backend/target/release/grader /app/bin/
 
 COPY --chown=app:app frontend/package.json frontend/bun.lock frontend/
 RUN cd frontend && bun install --frozen-lockfile --production
@@ -65,7 +65,7 @@ COPY --chown=app:app frontend/ frontend/
 COPY --chown=app:app start.sh ./
 
 ENV API_BIN=/app/bin/api \
-    HARNESS_BIN=/app/bin/harness \
+    GRADER_BIN=/app/bin/grader \
     CARGO_NET_OFFLINE=true \
     WEB_PORT=3000
 EXPOSE 3000

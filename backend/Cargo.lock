@@ -1291,6 +1291,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e4eba85ea1d0a966a983acd07deee566e67395d2d96b6fb39e62b5a833f1eb0b"
 
 [[package]]
+name = "grader"
+version = "0.1.0"
+dependencies = [
+ "litesvm",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "solana-account",
+ "solana-address 2.7.0",
+ "solana-instruction 3.5.1",
+ "solana-keypair",
+ "solana-signer",
+ "solana-transaction",
+]
+
+[[package]]
 name = "group"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1312,21 +1328,6 @@ dependencies = [
  "ff 0.14.0",
  "rand_core 0.10.1",
  "subtle",
-]
-
-[[package]]
-name = "harness"
-version = "0.1.0"
-dependencies = [
- "litesvm",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "solana-address 2.7.0",
- "solana-instruction 3.5.1",
- "solana-keypair",
- "solana-signer",
- "solana-transaction",
 ]
 
 [[package]]
