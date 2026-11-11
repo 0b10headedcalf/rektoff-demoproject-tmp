@@ -13,7 +13,7 @@ type Stage = "queued" | "building" | "testing" | "done";
 interface JobState {
   stage: Stage;
   passed: boolean | null;
-  checks: { name: string; passed: boolean }[];
+  checks: { name: string; passed: boolean; detail: string | null }[];
   compile_error: string | null;
   error: string | null;
   queue_ms: number | null;
@@ -96,6 +96,12 @@ function showResult(state: JobState) {
     const item = document.createElement("li");
     item.className = check.passed ? "pass" : "fail";
     item.textContent = `${check.passed ? "✓" : "✗"} ${check.name}`;
+    if (!check.passed && check.detail) {
+      const detail = document.createElement("div");
+      detail.className = "detail";
+      detail.textContent = check.detail;
+      item.append(detail);
+    }
     checksEl.append(item);
   }
 

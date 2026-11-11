@@ -1,12 +1,28 @@
 # Rektoff Practice (demo)
 
-Fix a planted bug in a Solana program in the browser, submit, and hidden tests
-attack the compiled result.
+Fix a planted bug in a Solana program in the browser, submit, and tests attack
+the compiled result.
 
 - `frontend/`: Bun server and CodeMirror page. Forwards `/api/*` to the backend.
 - `backend/api/`: Rust (axum) API. Queues submissions, compiles them, runs the grader.
 - `backend/grader/`: loads a compiled program into LiteSVM and runs a level's checks.
 - `backend/levels/`: one folder per level.
+
+## Add a level
+
+Add a folder to `backend/levels/` and rebuild. The grader picks it up by itself.
+
+```
+backend/levels/level-04-some-bug/
+  description.md       shown next to the editor; starts with "# Level 4: ..."
+  program/             the buggy Anchor crate; players edit src/lib.rs
+  solution/lib.rs      the reference fix
+  tests/checks.rs      the attack, plus checks that normal use still works
+```
+
+Copy an existing level to start. Give the program a new id in `declare_id!` and
+use the same id in `checks.rs`. The folder name is the level id, and levels
+appear in name order. Helpers for checks are in `backend/grader/src/support.rs`.
 
 ## Run locally
 

@@ -1,8 +1,8 @@
 //! Trusted grader. Loads a compiled program and runs a level's checks against it.
 //!
 //! Usage: grader <level> <path/to/program.so>
-//! Prints one JSON object on stdout. `detail` is for logs only: the API must
-//! strip it before anything reaches the player.
+//! Prints one JSON object on stdout. `detail` says why a check failed and is
+//! shown to the player.
 
 use std::panic::{self, AssertUnwindSafe};
 use std::path::Path;
@@ -12,13 +12,6 @@ use std::time::Instant;
 use serde::Serialize;
 
 mod support;
-
-#[path = "../../levels/level-01-missing-signer/tests-hidden/checks.rs"]
-mod level_01;
-#[path = "../../levels/level-02-missing-owner-check/tests-hidden/checks.rs"]
-mod level_02;
-#[path = "../../levels/level-03-fee-rounding/tests-hidden/checks.rs"]
-mod level_03;
 
 pub struct Check {
     pub name: &'static str,
@@ -40,14 +33,8 @@ struct Report {
     checks: Vec<CheckResult>,
 }
 
-fn checks_for(level: &str) -> Option<&'static [Check]> {
-    match level {
-        "level-01-missing-signer" => Some(level_01::CHECKS),
-        "level-02-missing-owner-check" => Some(level_02::CHECKS),
-        "level-03-fee-rounding" => Some(level_03::CHECKS),
-        _ => None,
-    }
-}
+// One module per folder in `levels/`, plus `checks_for`, written by build.rs.
+include!(concat!(env!("OUT_DIR"), "/levels.rs"));
 
 fn run_check(check: &Check, program: &Path) -> CheckResult {
     let started = Instant::now();

@@ -1,4 +1,4 @@
-//! Hidden checks for Level 3. Players see only each check's `name`.
+//! Checks for Level 3. Players see each check's name and, on a failure, why.
 //!
 //! Every check builds a fresh VM, so checks cannot affect each other.
 

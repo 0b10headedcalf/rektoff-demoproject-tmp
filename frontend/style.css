@@ -209,6 +209,13 @@ button:disabled {
   border-bottom: var(--border);
 }
 
+.checks .detail {
+  margin: 2px 0 0 1.6em;
+  color: var(--muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
 .compile-error {
   max-height: 40vh;
   margin: 8px 0;

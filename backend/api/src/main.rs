@@ -60,6 +60,8 @@ enum Stage {
 struct CheckOutcome {
     name: String,
     passed: bool,
+    /// Why the check failed, in the test's own words.
+    detail: Option<String>,
 }
 
 /// Everything the player is allowed to see about a job.
@@ -318,7 +320,6 @@ async fn run_job(app: &App, job: Job) {
     match graded {
         Ok(report) => {
             for check in report.checks.iter().filter(|c| !c.passed) {
-                // `detail` describes hidden test behaviour: log it, never send it.
                 println!("job {} check failed: {:?}: {:?}", job.id, check.name, check.detail);
             }
             println!(
@@ -332,7 +333,7 @@ async fn run_job(app: &App, job: Job) {
                 s.checks = report
                     .checks
                     .into_iter()
-                    .map(|c| CheckOutcome { name: c.name, passed: c.passed })
+                    .map(|c| CheckOutcome { name: c.name, passed: c.passed, detail: c.detail })
                     .collect();
             });
         }

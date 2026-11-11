@@ -1,4 +1,4 @@
-//! Hidden checks for Level 1. Players see only each check's `name`.
+//! Checks for Level 1. Players see each check's name and, on a failure, why.
 //!
 //! Every check builds a fresh VM, so checks cannot affect each other.
 
@@ -64,14 +64,17 @@ fn attacker_cannot_withdraw(so: &Path) -> Result<(), String> {
     let attacker = funded_user(&mut world.svm)?;
     let before = balance(&world.svm, &world.vault);
 
-    // TODO(you): attack the vault, then decide whether the player's fix held.
-    //   1. Build the instruction with withdraw_ix(...). Pass the real owner's
-    //      address, but think about what owner_signs must be for an attacker.
-    //   2. Send it with send(&mut world.svm, ix, &attacker). The attacker pays.
-    //   3. Return Ok(()) only if the vault still holds `before`.
-    //      Careful: is `send` returning Err enough on its own to prove that?
-    let _ = (&attacker, before);
-    Err("exploit check not written yet".to_string())
+    // The attacker names the real owner but cannot sign for them, so the
+    // owner is passed with owner_signs = false. Only the attacker signs.
+    let loot = Keypair::new().pubkey();
+    let ix = withdraw_ix(world.program, world.vault, world.owner.pubkey(), false, loot, SOL / 2);
+    // Whether the transaction failed is not the test: the vault's balance is.
+    let _ = send(&mut world.svm, ix, &attacker);
+
+    match balance(&world.svm, &world.vault) {
+        after if after == before => Ok(()),
+        after => Err(format!("vault went from {before} to {after}")),
+    }
 }
 
 fn owner_can_withdraw(so: &Path) -> Result<(), String> {

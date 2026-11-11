@@ -6,4 +6,4 @@ only that owner should be able to withdraw.
 Somebody has found a way to withdraw from vaults that are not theirs.
 
 **Your goal:** stop the exploit without breaking the owner's own withdrawals.
-Edit the program, then submit. Hidden tests will attack your fix.
+Edit the program, then submit. Tests will attack your fix.

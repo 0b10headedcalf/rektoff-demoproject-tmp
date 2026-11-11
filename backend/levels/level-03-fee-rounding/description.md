@@ -7,5 +7,5 @@ The access checks are sound this time. Even so, one owner has emptied a large
 vault and the treasury received nothing.
 
 **Your goal:** make sure every withdrawal pays its fee, without changing what a
-normal withdrawal pays. Edit the program, then submit. Hidden tests will attack
+normal withdrawal pays. Edit the program, then submit. Tests will attack
 your fix.

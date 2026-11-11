@@ -1,4 +1,4 @@
-//! Helpers shared by every level's hidden checks.
+//! Helpers shared by every level's checks.
 //!
 //! Checks build the scene themselves (funded users, pre-made program accounts)
 //! so the level programs only need the instructions the player reads.

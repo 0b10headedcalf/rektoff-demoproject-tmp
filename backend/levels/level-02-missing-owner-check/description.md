@@ -7,4 +7,4 @@ Vaults are being drained anyway, and every one of those withdrawals carries a
 valid signature.
 
 **Your goal:** stop the exploit without breaking the owner's own withdrawals.
-Edit the program, then submit. Hidden tests will attack your fix.
+Edit the program, then submit. Tests will attack your fix.
